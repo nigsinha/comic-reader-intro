@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RAKSHAK UNIVERSE — Issue #1</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Anton&family=Special+Elite&family=Barlow+Condensed:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#e8dfc8;
+    --ink:#161311;
+    --red:#b6281f;
+    --gold:#c9a24a;
+    --panel-border: 5px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%; overscroll-behavior:none;}
+  body{
+    background: radial-gradient(circle at 50% 0%, #2a2521, #0d0b09 75%);
+    font-family:'Barlow Condensed', sans-serif;
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    min-height:100vh;
+    padding:16px 0 90px;
+    overflow-x:hidden;
+  }
+
+  /* ---------- Book shell ---------- */
+  #book{
+    position:relative;
+    width:min(94vw, 720px);
+    aspect-ratio: 3 / 4.2;
+    background:var(--paper);
+    box-shadow: 0 30px 60px rgba(0,0,0,.6), 0 0 0 2px #000;
+    overflow:hidden;
+  }
+  .page{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    opacity:0;
+    transform: translateX(40px) scale(.98);
+    pointer-events:none;
+    transition: opacity .45s ease, transform .45s ease;
+    background:
+      linear-gradient(rgba(0,0,0,0) 0 0),
+      var(--paper);
+  }
+  .page.active{
+    opacity:1; transform:translateX(0) scale(1); pointer-events:auto; z-index:2;
+  }
+  .page.exit-left{ transform: translateX(-40px) scale(.98); }
+  .page.exit-right{ transform: translateX(40px) scale(.98); }
+
+  /* halftone paper texture */
+  .page::before{
+    content:""; position:absolute; inset:0; pointer-events:none; opacity:.05;
+    background-image: radial-gradient(#000 1px, transparent 1px);
+    background-size:6px 6px;
+  }
+
+  /* ---------- Cover ---------- */
+  .cover{
+    justify-content:flex-end;
+    background: linear-gradient(180deg, rgba(10,8,6,.15), rgba(10,8,6,.85) 78%), url('images/rakshak.png') center 15%/cover;
+    color:#f2ead7;
+    padding:22px 20px 26px;
+    text-align:center;
+  }
+  .cover .imprint{
+    font-family:'Special Elite', monospace;
+    font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--gold); margin-bottom:8px;
+  }
+  .cover h1{
+    font-family:'Bangers', cursive;
+    font-size:clamp(38px,9vw,58px);
+    letter-spacing:2px;
+    line-height:.95;
+    color:#fff;
+    text-shadow: 3px 3px 0 var(--red), -1px -1px 0 #000, 1px 1px 0 #000;
+    transform: rotate(-1.5deg);
+  }
+  .cover .sub{
+    font-family:'Anton', sans-serif;
+    font-size:13px; letter-spacing:4px; margin-top:6px; color:var(--gold);
+  }
+  .cover .issue{
+    position:absolute; top:16px; right:16px;
+    background:var(--red); color:#fff; font-family:'Anton',sans-serif;
+    font-size:12px; padding:6px 10px; transform:rotate(4deg);
+    box-shadow:2px 2px 0 #000;
+  }
+  .cover .tap-hint{
+    font-family:'Special Elite', monospace; font-size:11px; letter-spacing:2px;
+    margin-top:14px; color:#cbb98c; opacity:.85;
+  }
+
+  /* ---------- Comic pages ---------- */
+  .grid{
+    flex:1; display:grid; gap:6px; padding:6px;
+  }
+  .g-splash{ grid-template-rows: 1fr; }
+  .g-duo{ grid-template-columns: 1fr; grid-template-rows: 1.3fr 1fr; }
+  .g-trio{ grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+
+  .panel{
+    position:relative;
+    border: var(--panel-border) solid var(--ink);
+    background-size:cover; background-position:center;
+    overflow:hidden;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.15);
+  }
+  .panel.span2{ grid-column: span 2; }
+  .panel img.full{
+    position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position: center 15%;
+  }
+
+  /* caption box */
+  .caption{
+    position:absolute; left:10px; bottom:10px; max-width:70%;
+    background:#f2ead7; border:3px solid var(--ink);
+    font-family:'Special Elite', monospace; font-size:11px; line-height:1.35;
+    padding:6px 9px; box-shadow:3px 3px 0 rgba(0,0,0,.5);
+  }
+  .caption.top{ bottom:auto; top:10px; }
+
+  /* speech bubble */
+  .bubble{
+    position:absolute; background:#fff; border:3px solid var(--ink);
+    border-radius:16px; padding:8px 12px; max-width:62%;
+    font-family:'Anton', sans-serif; font-size:13px; line-height:1.15;
+    box-shadow:3px 3px 0 rgba(0,0,0,.45);
+  }
+  .bubble::after{
+    content:""; position:absolute; width:0; height:0; border:10px solid transparent;
+  }
+  .bubble.bl{ bottom: 14px; left:12px; }
+  .bubble.bl::after{ left:22px; bottom:-16px; border-top-color:#fff; border-bottom:0; }
+  .bubble.tr{ top:14px; right:12px; }
+  .bubble.tr::after{ right:22px; top:-16px; border-bottom-color:#fff; border-top:0; }
+
+  /* SFX text */
+  .sfx{
+    position:absolute; font-family:'Bangers', cursive; color:#fff;
+    -webkit-text-stroke: 2px var(--ink); font-size:clamp(24px,6vw,40px);
+    transform:rotate(-8deg); text-shadow:3px 3px 0 var(--red);
+  }
+
+  /* page label */
+  .pagenum{
+    position:absolute; bottom:6px; right:10px; font-family:'Special Elite',monospace;
+    font-size:10px; color:var(--ink); opacity:.6;
+  }
+
+  /* ---------- Controls ---------- */
+  #controls{
+    position:fixed; bottom:0; left:0; right:0;
+    display:flex; align-items:center; justify-content:center; gap:18px;
+    padding:14px 16px calc(14px + env(safe-area-inset-bottom));
+    background:linear-gradient(180deg, transparent, rgba(0,0,0,.55) 30%);
+  }
+  .navbtn{
+    font-family:'Anton', sans-serif; letter-spacing:1px; font-size:13px;
+    background:var(--gold); color:#161311; border:2px solid #000;
+    padding:9px 16px; cursor:pointer; box-shadow:3px 3px 0 #000;
+    transition: transform .12s ease;
+  }
+  .navbtn:active{ transform: translate(2px,2px); box-shadow:1px 1px 0 #000; }
+  .navbtn:disabled{ opacity:.35; cursor:default; }
+  #dots{ display:flex; gap:6px; }
+  #controlsInner{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+  #audioBtn{ min-width:130px; }
+  #pageInfo{ color:#f2ead7; font-family:'Special Elite',monospace; font-size:11px; letter-spacing:1px; }
+  #dots span{
+    width:7px; height:7px; border-radius:50%; background:#5b5044; display:block;
+    transition: background .2s;
+  }
+  #dots span.on{ background:var(--gold); }
+
+  .navbtn:focus-visible{ outline:3px solid #fff; outline-offset:4px; }
+  #lightbox:focus-visible{ outline:2px solid #fff; }
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ scroll-behavior:auto !important; transition:none !important; animation:none !important; }
+  }
+
+  @media (max-width:480px){
+    .bubble{ font-size:11.5px; }
+    .caption{ font-size:10px; }
+  }
+
+  /* ---------- Zoom ---------- */
+  .panel img.full{ cursor: zoom-in; }
+  #lightbox{
+    position:fixed; inset:0; background:rgba(6,4,3,.92);
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none; transition:opacity .25s ease;
+    z-index:50; padding:24px;
+  }
+  #lightbox.open{ opacity:1; pointer-events:auto; }
+  #lightbox img{
+    max-width:100%; max-height:100%; box-shadow:0 20px 60px rgba(0,0,0,.7);
+    border:4px solid #f2ead7; cursor: zoom-out;
+    transform:scale(.92); transition:transform .25s ease;
+  }
+  #lightbox.open img{ transform:scale(1); }
+</style>
+</head>
+<body>
+
+<div id="book">
+
+  <!-- COVER -->
+  <section class="page active" data-page="0">
+    <div class="cover">
+      <div class="issue">ISSUE #1</div>
+      <div class="imprint">Bharat Sector · Earth Protection Files</div>
+      <h1>RAKSHAK<br>UNIVERSE</h1>
+      <div class="sub">GUARDIANS RISE</div>
+      <div class="tap-hint">▶ TAP OR PRESS → TO BEGIN</div>
+    </div>
+  </section>
+
+  <!-- PAGE 1 : Naagveer splash -->
+  <section class="page" data-page="1">
+    <div class="grid g-splash">
+      <div class="panel">
+        <img class="full" src="images/naagveer.png" alt="Naagveer emerging from smoke">
+        <div class="sfx" style="top:8%; left:6%;">HSSSK!</div>
+        <div class="caption top">SECTOR 7, MIDNIGHT — something moves between the pillars of the old temple ruins.</div>
+        <div class="bubble bl">They sent an army. I only need two blades.</div>
+      </div>
+    </div>
+    <div class="pagenum">01</div>
+  </section>
+
+  <!-- PAGE 2 : Trinetra + Agnipankh duo -->
+  <section class="page" data-page="2">
+    <div class="grid g-duo">
+      <div class="panel">
+        <img class="full" src="images/trinetra.png" alt="Trinetra floating in the cosmos">
+        <div class="caption">Beyond the sky, the Third Eye opens. Trinetra has seen this battle before — in a dream that hasn't happened yet.</div>
+        <div class="bubble tr">The future is not fixed. Only foreseen.</div>
+      </div>
+      <div class="panel">
+        <img class="full" src="images/agnipankh.png" alt="Agnipankh with fire wings">
+        <div class="sfx" style="bottom:10%; right:8%; color:#ffb84d;">WHOOSH</div>
+        <div class="bubble bl">Then let's rewrite the ending.</div>
+      </div>
+    </div>
+    <div class="pagenum">02</div>
+  </section>
+
+  <!-- PAGE 3 : VayuX + Rakshak trio -->
+  <section class="page" data-page="3">
+    <div class="grid g-trio">
+      <div class="panel span2">
+        <img class="full" src="images/vayux.png" alt="VayuX racing through a storm">
+        <div class="caption">VayuX outruns the storm he made himself.</div>
+        <div class="bubble tr">Catch up if you can, tin man.</div>
+      </div>
+      <div class="panel">
+        <img class="full" src="images/rakshak.png" alt="Rakshak-01 armored defender">
+      </div>
+      <div class="panel" style="background:#161311;">
+        <div class="caption" style="position:static; margin:auto; text-align:center; background:transparent; border:none; box-shadow:none; color:#f2ead7;">
+          RAKSHAK-01<br>
+          <span style="font-family:'Anton',sans-serif; font-size:10px; letter-spacing:2px; color:var(--gold);">POWER CORE: 98% · ARMOR: 100%</span>
+        </div>
+      </div>
+    </div>
+    <div class="pagenum">03</div>
+  </section>
+
+  <!-- PAGE 4 : The five assemble -->
+  <section class="page" data-page="4">
+    <div class="grid" style="grid-template-columns:1fr 1fr 1fr; grid-template-rows:1fr 1fr;">
+      <div class="panel" style="grid-column:span 3;">
+        <img class="full" src="images/rakshak.png" alt="Rakshak-01 leads the charge" style="object-position:center 8%;">
+        <div class="caption top">FIVE SIGNALS. ONE ALARM. Across Bharat, the guardians move at once.</div>
+      </div>
+      <div class="panel"><img class="full" src="images/naagveer.png" alt="Naagveer" style="object-position:center 12%;"></div>
+      <div class="panel"><img class="full" src="images/trinetra.png" alt="Trinetra" style="object-position:center 8%;"></div>
+      <div class="panel"><img class="full" src="images/agnipankh.png" alt="Agnipankh" style="object-position:center 10%;"></div>
+    </div>
+    <div class="pagenum">04</div>
+  </section>
+
+  <!-- PAGE 5 : Villain teaser -->
+  <section class="page" data-page="5">
+    <div class="grid g-splash">
+      <div class="panel" style="background:radial-gradient(circle at 50% 40%, #241a14, #060403 75%); display:flex; align-items:center; justify-content:center;">
+        <div style="text-align:center; padding:24px;">
+          <div class="sfx" style="position:static; display:inline-block; transform:rotate(-3deg); font-size:clamp(30px,8vw,46px);">THEY'RE WATCHING</div>
+          <p style="font-family:'Special Elite',monospace; color:#cbb98c; font-size:12px; letter-spacing:1px; margin-top:14px; line-height:1.6; max-width:80%; margin-left:auto; margin-right:auto;">
+            Kaal Naag. Dark Acharya. Red Cipher. Shadow Fang. Agni Rakshas. Glacier Queen. Virus-X. The Collector.<br><br>
+            Eight rivals. Eight grudges. One universe left to defend.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="pagenum">05</div>
+  </section>
+
+  <!-- BACK COVER -->
+  <section class="page" data-page="6">
+    <div class="cover" style="background:linear-gradient(180deg, rgba(10,8,6,.4), rgba(10,8,6,.92)), url('images/naagveer.png') center 10%/cover; justify-content:center;">
+      <div class="sub" style="margin-bottom:10px;">TO BE CONTINUED</div>
+      <h1 style="font-size:clamp(26px,7vw,38px);">RAKSHAK<br>UNIVERSE</h1>
+      <div class="tap-hint" style="margin-top:18px;">Built with HTML, CSS &amp; JavaScript — no libraries.</div>
+    </div>
+  </section>
+
+</div>
+
+<!-- Lightbox for click-to-zoom -->
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="Expanded comic panel" aria-hidden="true" tabindex="-1">
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<div id="controls">
+  <button type="button" class="navbtn" id="prevBtn" aria-label="Previous page">◀ PREV</button>
+  <div id="controlsInner">
+    <button type="button" class="navbtn" id="audioBtn" aria-pressed="true" aria-label="Toggle background sound">🔊 SOUND ON</button>
+    <div id="pageInfo" aria-live="polite">Page 1 of 7</div>
+    <div id="dots"></div>
+  </div>
+  <button type="button" class="navbtn" id="nextBtn" aria-label="Next page">NEXT ▶</button>
+</div>
+
+<audio id="bgAudio" src="audio/background.mp3" loop preload="auto"></audio>
+
+<script>
+(function(){
+  const pages = Array.from(document.querySelectorAll('.page'));
+  const dotsWrap = document.getElementById('dots');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  let current = 0;
+
+  /* ---------- Synthesized page-turn whoosh (no audio files needed) ---------- */
+  let audioCtx = null;
+  function playFlip(){
+    try{
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const dur = 0.28;
+      const bufferSize = audioCtx.sampleRate * dur;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for(let i=0;i<bufferSize;i++){ data[i] = (Math.random()*2-1); }
+
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(1800, audioCtx.currentTime);
+      filter.frequency.exponentialRampToValueAtTime(500, audioCtx.currentTime + dur);
+      filter.Q.value = 0.8;
+
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.35, audioCtx.currentTime + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+
+      noise.connect(filter).connect(gain).connect(audioCtx.destination);
+      noise.start();
+      noise.stop(audioCtx.currentTime + dur);
+    }catch(e){ /* audio unsupported — fail silently */ }
+  }
+
+  /* ---------- Click-to-zoom lightbox ---------- */
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const pageInfo = document.getElementById('pageInfo');
+
+  const audioBtn = document.getElementById('audioBtn');
+  const bgAudio = document.getElementById('bgAudio');
+  let soundEnabled = true;
+  let audioStarted = false;
+
+  document.querySelectorAll('.panel img.full').forEach(img => {
+    img.loading = 'lazy';
+    img.addEventListener('error', () => img.classList.add('load-fail'));
+    img.addEventListener('click', (e) => {
+      e.stopPropagation();
+      lightboxImg.src = img.src;
+      lightboxImg.alt = img.alt;
+      lightbox.classList.add('open');
+      lightbox.setAttribute('aria-hidden', 'false');
+      lightbox.focus();
+    });
+  });
+  lightbox.addEventListener('click', () => {
+    lightbox.classList.remove('open');
+    lightbox.setAttribute('aria-hidden', 'true');
+  });
+
+  function setAudioButtonState(isEnabled){
+    if(!audioBtn) return;
+    soundEnabled = isEnabled;
+    audioBtn.textContent = isEnabled ? '🔊 SOUND ON' : '🔇 SOUND OFF';
+    audioBtn.setAttribute('aria-pressed', String(isEnabled));
+  }
+
+  function startAudio(){
+    if(!bgAudio || audioStarted || !soundEnabled) return;
+    audioStarted = true;
+    bgAudio.volume = 0.18;
+    bgAudio.play().catch(() => {});
+  }
+
+  function toggleAudio(){
+    if(!bgAudio) return;
+    if(soundEnabled){
+      bgAudio.pause();
+      setAudioButtonState(false);
+    } else {
+      setAudioButtonState(true);
+      startAudio();
+    }
+  }
+
+  if(audioBtn){
+    audioBtn.addEventListener('click', toggleAudio);
+    setAudioButtonState(true);
+  }
+  if(bgAudio){
+    bgAudio.addEventListener('error', () => {
+      if(audioBtn) audioBtn.disabled = true;
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape'){
+      lightbox.classList.remove('open');
+      lightbox.setAttribute('aria-hidden', 'true');
+    }
+  });
+
+  pages.forEach((_, i) => {
+    const d = document.createElement('span');
+    if(i === 0) d.classList.add('on');
+    dotsWrap.appendChild(d);
+  });
+  const dots = Array.from(dotsWrap.children);
+  if(audioBtn) setAudioButtonState(true);
+
+  function render(next, direction){
+    if(next < 0 || next >= pages.length || next === current) return;
+    const goingForward = direction === undefined ? next > current : direction === 'fwd';
+
+    playFlip();
+    pages[current].classList.remove('active');
+    const exitClass = goingForward ? 'exit-left' : 'exit-right';
+    pages[current].classList.add(exitClass);
+    pages[next].classList.remove('exit-left');
+    pages[next].classList.remove('exit-right');
+    // force reflow so the transition plays
+    void pages[next].offsetWidth;
+    pages[next].classList.add('active');
+    startAudio();
+
+    setTimeout(() => {
+      pages[current].classList.remove('exit-left');
+      pages[current].classList.remove('exit-right');
+    }, 460);
+
+    dots[current].classList.remove('on');
+    dots[next].classList.add('on');
+    current = next;
+    updateButtons();
+    updatePageInfo();
+  }
+
+  function updatePageInfo(){
+    if(pageInfo) pageInfo.textContent = `Page ${current + 1} of ${pages.length}`;
+  }
+
+  function updateButtons(){
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === pages.length - 1;
+  }
+
+  nextBtn.addEventListener('click', () => render(current + 1, 'fwd'));
+  prevBtn.addEventListener('click', () => render(current - 1, 'back'));
+
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'ArrowRight') render(current + 1, 'fwd');
+    if(e.key === 'ArrowLeft') render(current - 1, 'back');
+  });
+
+  // tap cover / swipe support
+  let touchX = null;
+  document.getElementById('book').addEventListener('touchstart', e => touchX = e.touches[0].clientX);
+  document.getElementById('book').addEventListener('touchend', e => {
+    if(touchX === null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    if(Math.abs(dx) > 40){
+      if(dx < 0) render(current + 1, 'fwd'); else render(current - 1, 'back');
+    } else if (current === 0) {
+      render(current + 1, 'fwd'); // tap cover to start
+    }
+    touchX = null;
+  });
+
+  updateButtons();
+  updatePageInfo();
+})();
+</script>
+
+</body>
+</html>
