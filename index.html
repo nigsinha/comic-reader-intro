@@ -23,8 +23,9 @@
     display:flex;
     flex-direction:column;
     align-items:center;
+    justify-content:flex-start;
     min-height:100vh;
-    padding:16px 0 90px;
+    padding:0 0 90px;
     overflow-x:hidden;
   }
 
@@ -32,10 +33,13 @@
   #book{
     position:relative;
     width:min(94vw, 720px);
+    height:min(88vh, calc(100vw * 1.4));
+    max-height:calc(100vh - 110px);
     aspect-ratio: 3 / 4.2;
     background:var(--paper);
     box-shadow: 0 30px 60px rgba(0,0,0,.6), 0 0 0 2px #000;
     overflow:hidden;
+    margin-top:12px;
   }
   .page{
     position:absolute; inset:0;
@@ -49,7 +53,7 @@
       var(--paper);
   }
   .page.active{
-    opacity:1; transform:translateX(0) scale(1); pointer-events:auto; z-index:2;
+    opacity:1; transform:translateX(0) scale(1); pointer-events:auto; z-index:3;
   }
   .page.exit-left{ transform: translateX(-40px) scale(.98); }
   .page.exit-right{ transform: translateX(40px) scale(.98); }
@@ -63,11 +67,27 @@
 
   /* ---------- Cover ---------- */
   .cover{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
     justify-content:flex-end;
-    background: linear-gradient(180deg, rgba(10,8,6,.15), rgba(10,8,6,.85) 78%), url('images/rakshak.png') center 15%/cover;
+    width:100%;
+    height:100%;
+    background-color:#1c140f;
+    background-image: linear-gradient(180deg, rgba(10,8,6,.15), rgba(10,8,6,.85) 78%), url('images/rakshak.png');
+    background-position:center 15%;
+    background-size:cover;
+    background-repeat:no-repeat;
     color:#f2ead7;
     padding:22px 20px 26px;
     text-align:center;
+  }
+  .cover > *{ position:relative; z-index:1; }
+  .cover::after{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(180deg, rgba(10,8,6,.05), rgba(10,8,6,.35) 70%, rgba(10,8,6,.6) 100%);
+    z-index:0;
   }
   .cover .imprint{
     font-family:'Special Elite', monospace;
@@ -95,6 +115,39 @@
   .cover .tap-hint{
     font-family:'Special Elite', monospace; font-size:11px; letter-spacing:2px;
     margin-top:14px; color:#cbb98c; opacity:.85;
+  }
+
+  .hero-intro{
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    background: radial-gradient(circle at 20% 20%, rgba(255,255,255,.24), transparent 32%),
+      linear-gradient(135deg, #2b2219 0%, #090806 100%);
+  }
+  .hero-card{
+    width:min(92%, 460px); border:4px solid #f2ead7; background:rgba(242,234,215,.96);
+    box-shadow: 8px 8px 0 rgba(0,0,0,.35); padding:22px 22px 24px; text-align:center;
+    transform: rotate(-1deg);
+  }
+  .hero-title{
+    font-family:'Bangers', cursive; font-size:clamp(30px,7vw,44px); letter-spacing:2px;
+    color:var(--red); text-shadow:2px 2px 0 #000; margin-bottom:10px;
+  }
+  .hero-copy{
+    font-family:'Anton', sans-serif; font-size:15px; letter-spacing:.6px; line-height:1.35;
+    color:#1f1a15; margin-top:8px;
+  }
+  .hero-list{
+    list-style:none; margin:14px 0 12px; display:grid; gap:8px; text-align:left;
+  }
+  .hero-list li{
+    font-family:'Special Elite', monospace; font-size:12px; line-height:1.4; color:#2d241d;
+    padding:8px 10px; background:rgba(255,255,255,.55); border:2px solid var(--ink);
+  }
+  .hero-list strong{
+    font-family:'Anton', sans-serif; letter-spacing:1px; text-transform:uppercase; color:var(--red);
+  }
+  .hero-hint{
+    font-family:'Special Elite', monospace; font-size:11px; letter-spacing:2px;
+    color:#7a5b21; margin-top:10px;
   }
 
   /* ---------- Comic pages ---------- */
@@ -223,8 +276,30 @@
     </div>
   </section>
 
-  <!-- PAGE 1 : Naagveer splash -->
+  <!-- PAGE 1 : Meet the heroes -->
   <section class="page" data-page="1">
+    <div class="grid g-splash">
+      <div class="panel hero-intro">
+        <div class="hero-card">
+          <div class="hero-title">MEET THE HEROES</div>
+          <p class="hero-copy">Five guardians.<br>One mission.</p>
+          <p class="hero-copy">Each protector possesses unique abilities, strengths, and responsibilities.</p>
+          <ul class="hero-list">
+            <li><strong>Rakshak</strong> – The Iron Guardian</li>
+            <li><strong>Trinetra</strong> – The Mystic Seer</li>
+            <li><strong>Agnipankh</strong> – Master of Fire</li>
+            <li><strong>Naagveer</strong> – Serpent Warrior</li>
+            <li><strong>Vayux</strong> – Lord of the Winds</li>
+          </ul>
+          <div class="hero-hint">Swipe to discover their stories...</div>
+        </div>
+      </div>
+    </div>
+    <div class="pagenum">01</div>
+  </section>
+
+  <!-- PAGE 2 : Naagveer splash -->
+  <section class="page" data-page="2">
     <div class="grid g-splash">
       <div class="panel">
         <img class="full" src="images/naagveer.png" alt="Naagveer emerging from smoke">
@@ -233,11 +308,11 @@
         <div class="bubble bl">They sent an army. I only need two blades.</div>
       </div>
     </div>
-    <div class="pagenum">01</div>
+    <div class="pagenum">02</div>
   </section>
 
-  <!-- PAGE 2 : Trinetra + Agnipankh duo -->
-  <section class="page" data-page="2">
+  <!-- PAGE 3 : Trinetra + Agnipankh duo -->
+  <section class="page" data-page="3">
     <div class="grid g-duo">
       <div class="panel">
         <img class="full" src="images/trinetra.png" alt="Trinetra floating in the cosmos">
@@ -250,11 +325,11 @@
         <div class="bubble bl">Then let's rewrite the ending.</div>
       </div>
     </div>
-    <div class="pagenum">02</div>
+    <div class="pagenum">03</div>
   </section>
 
-  <!-- PAGE 3 : VayuX + Rakshak trio -->
-  <section class="page" data-page="3">
+  <!-- PAGE 4 : VayuX + Rakshak trio -->
+  <section class="page" data-page="4">
     <div class="grid g-trio">
       <div class="panel span2">
         <img class="full" src="images/vayux.png" alt="VayuX racing through a storm">
@@ -271,11 +346,11 @@
         </div>
       </div>
     </div>
-    <div class="pagenum">03</div>
+    <div class="pagenum">04</div>
   </section>
 
-  <!-- PAGE 4 : The five assemble -->
-  <section class="page" data-page="4">
+  <!-- PAGE 5 : The five assemble -->
+  <section class="page" data-page="5">
     <div class="grid" style="grid-template-columns:1fr 1fr 1fr; grid-template-rows:1fr 1fr;">
       <div class="panel" style="grid-column:span 3;">
         <img class="full" src="images/rakshak.png" alt="Rakshak-01 leads the charge" style="object-position:center 8%;">
@@ -285,11 +360,11 @@
       <div class="panel"><img class="full" src="images/trinetra.png" alt="Trinetra" style="object-position:center 8%;"></div>
       <div class="panel"><img class="full" src="images/agnipankh.png" alt="Agnipankh" style="object-position:center 10%;"></div>
     </div>
-    <div class="pagenum">04</div>
+    <div class="pagenum">05</div>
   </section>
 
-  <!-- PAGE 5 : Villain teaser -->
-  <section class="page" data-page="5">
+  <!-- PAGE 6 : Villain teaser -->
+  <section class="page" data-page="6">
     <div class="grid g-splash">
       <div class="panel" style="background:radial-gradient(circle at 50% 40%, #241a14, #060403 75%); display:flex; align-items:center; justify-content:center;">
         <div style="text-align:center; padding:24px;">
@@ -301,15 +376,15 @@
         </div>
       </div>
     </div>
-    <div class="pagenum">05</div>
+    <div class="pagenum">06</div>
   </section>
 
   <!-- BACK COVER -->
-  <section class="page" data-page="6">
+  <section class="page" data-page="7">
     <div class="cover" style="background:linear-gradient(180deg, rgba(10,8,6,.4), rgba(10,8,6,.92)), url('images/naagveer.png') center 10%/cover; justify-content:center;">
       <div class="sub" style="margin-bottom:10px;">TO BE CONTINUED</div>
       <h1 style="font-size:clamp(26px,7vw,38px);">RAKSHAK<br>UNIVERSE</h1>
-      <div class="tap-hint" style="margin-top:18px;">Built with HTML, CSS &amp; JavaScript — no libraries.</div>
+      <div class="tap-hint" style="margin-top:18px;">The guardians awaken. The battle begins.</div>
     </div>
   </section>
 
